@@ -8,6 +8,20 @@
 - Compiler on/off switch
 - Per-project settings
 
+## Requirements 
+
+You need sass installed
+
+OSX:
+```bash
+gem install sass
+```
+
+Windows installer
+http://rubyinstaller.org/downloads/
+
+
+
 ## Project Settings
 
 Example Directories: 
