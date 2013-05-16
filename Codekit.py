@@ -69,7 +69,7 @@ class SassListener(sublime_plugin.EventListener):
 		# Refresh Browser
 		try:
 		   	if view.window().project_data()['sass_browser_refresh'] is None:
-		   		# view.window().run_command('refresh_browsers');
+		   		x = 0
 		   	else:
 		   		if view.window().project_data()['sass_browser_refresh'] is True:
 		   			view.window().run_command('refresh_browsers');	
@@ -137,7 +137,7 @@ class set_debug_on(sublime_plugin.TextCommand):
 
 class refresh_browsers(sublime_plugin.TextCommand):
 	def run(self, args, activate_browser=True,
-			browser_name='all', auto_save=True, delay=None):
+			browser_name='all', auto_save=True, delay=2):
 
 		print('Refreshing Browsers')
 
