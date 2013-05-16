@@ -26,7 +26,7 @@ class SassListener(sublime_plugin.EventListener):
 	def on_post_save_async(self, view):
 		print('Sass Payload: Started!');
 
-		if os.path.isfile(view.file_name()) and view.file_name().split('.')[-1] == 'scss':
+		if os.path.isfile(view.file_name()) and view.file_name().split('.')[-1] == 'scss' or os.path.isfile(view.file_name()) and view.file_name().split('.')[-1] == 'sass':
 
 			# Get file information from window
 			fileName = view.file_name().split('/')[-1]
@@ -69,7 +69,7 @@ class SassListener(sublime_plugin.EventListener):
 		# Refresh Browser
 		try:
 		   	if view.window().project_data()['sass_browser_refresh'] is None:
-		   		view.window().run_command('refresh_browsers');
+		   		# view.window().run_command('refresh_browsers');
 		   	else:
 		   		if view.window().project_data()['sass_browser_refresh'] is True:
 		   			view.window().run_command('refresh_browsers');	
