@@ -1,0 +1,14 @@
+[
+    {
+        "caption": "Project: SASS Compiler",
+        "command": "set_sass_status"
+    },
+    {
+        "caption": "Project: SASS Debug",
+        "command": "set_debug_on"
+    },
+    {
+        "caption": "Project: Browser Refresh",
+        "command": "set_browser_refresh"
+    }
+]
