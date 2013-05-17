@@ -26,6 +26,8 @@ class SassListener(sublime_plugin.EventListener):
 	def on_post_save_async(self, view):
 		print('Sass Payload: Started!');
 
+		sass_fired = False
+
 		if os.path.isfile(view.file_name()) and view.file_name().split('.')[-1] == 'scss' or os.path.isfile(view.file_name()) and view.file_name().split('.')[-1] == 'sass':
 
 			# Get file information from window
@@ -33,9 +35,23 @@ class SassListener(sublime_plugin.EventListener):
 			destinFileName = fileName[:-4] + 'css' 
 			projectPath = view.window().folders()[0];
 
+			print('Original File:' + fileName)
+
+			# Check to see if compiling base scss
+			try:
+				if len(view.window().project_data()['folders'][0]['base_scss_file']) > 0:
+					fileName = view.window().project_data()['folders'][0]['base_scss_file']
+					destinFileName = fileName[:-4] + 'css' 
+					x = 0
+			except KeyError:
+				x = 0			
+
 			# Get the sass path from Project
 			sassOrigin = projectPath + '/' + view.window().project_data()['folders'][0]['sass_origin']
 			sassOutput = projectPath + '/' + view.window().project_data()['folders'][0]['sass_output']
+			
+			print('INPUT FILE: ' + sassOrigin + '/' + fileName);
+			print('INPUT FILE: ' + sassOutput + '/' + destinFileName);
 
 			if os.path.isfile(sassOrigin + '/' + fileName) and os.path.isfile(sassOutput + '/' + destinFileName):
 
@@ -48,6 +64,8 @@ class SassListener(sublime_plugin.EventListener):
 				except KeyError:
 					cmd = "sass --style compact '{0}':'{1}' ".format(sassOrigin + '/' + fileName, sassOutput + '/' + destinFileName)
 
+				# Output the run command
+				print('SASS COMMAND : ' + cmd) 
 
 				# Run Command
 				try:
@@ -55,9 +73,11 @@ class SassListener(sublime_plugin.EventListener):
 						x = None
 					else:
 						subprocess.Popen(cmd, shell=True);
+						sass_fired = True;
 						view.set_status('codekit', 'Sass compiled')	
 				except KeyError:
 				    subprocess.Popen(cmd, shell=True);
+				    sass_fired = True;
 				    view.set_status('codekit', 'Sass compiled')	
 
 			else:
@@ -72,7 +92,12 @@ class SassListener(sublime_plugin.EventListener):
 		   		x = 0
 		   	else:
 		   		if view.window().project_data()['sass_browser_refresh'] is True:
-		   			view.window().run_command('refresh_browsers');	
+		   			if sass_fired == True:
+			   			view.window().run_command('refresh_browsers_delay');
+			   		else:
+			   			view.window().run_command('refresh_browsers');
+
+
 		except KeyError:
 		    x = None
 
@@ -137,7 +162,77 @@ class set_debug_on(sublime_plugin.TextCommand):
 
 class refresh_browsers(sublime_plugin.TextCommand):
 	def run(self, args, activate_browser=False,
-			browser_name='all', auto_save=True, delay=2):
+			browser_name='all', auto_save=True, delay=0):
+
+		print(args)
+
+		print('Refreshing Browsers')
+
+		# Auto-save
+		if auto_save and self.view and self.view.is_dirty():
+			self.view.run_command('save')
+
+		# Detect OS and import
+		if _os == 'Darwin':
+			from mac import MacBrowserRefresh
+			from mac.utils import running_browsers
+			refresher = MacBrowserRefresh(activate_browser, running_browsers())
+		elif _os == 'Windows':
+			from win import WinBrowserRefresh
+			refresher = WinBrowserRefresh(activate_browser)
+		else:
+			sublime.error_message('Your operating system is not supported')
+
+		# Delay refresh
+		if delay is not None:
+			import time
+			time.sleep(delay)
+
+		# Actually refresh browsers
+		if browser_name == 'Google Chrome':
+			refresher.chrome()
+
+		elif browser_name == 'Google Chrome Canary' and _os == 'Darwin':
+			refresher.canary()
+
+		elif browser_name == 'Safari':
+			refresher.safari()
+
+		elif browser_name == 'WebKit' and _os == 'Darwin':
+			refresher.webkit()
+
+		elif browser_name == 'Firefox':
+			refresher.firefox()
+
+		elif browser_name == 'Opera':
+			refresher.opera()
+
+		elif browser_name == 'IE' and _os == 'Windows':
+			refresher.ie()
+
+		elif browser_name == 'Iron' and _os == 'Windows':
+			refresher.iron()
+
+		elif browser_name == 'all':
+			refresher.chrome()
+			refresher.safari()
+			refresher.firefox()
+			refresher.opera()
+
+			if _os == 'Darwin':
+				refresher.canary()
+				refresher.webkit()
+
+			if _os == 'Windows':
+				refresher.ie()
+				refresher.iron()
+
+
+class refresh_browsers_delay(sublime_plugin.TextCommand):
+	def run(self, args, activate_browser=False,
+			browser_name='all', auto_save=True, delay=1):
+
+		print(args)
 
 		print('Refreshing Browsers')
 
