@@ -47,22 +47,22 @@ class SassListener(sublime_plugin.EventListener):
 				x = 0			
 
 			# Get the sass path from Project
-			sassOrigin = projectPath + '/' + view.window().project_data()['folders'][0]['sass_origin']
-			sassOutput = projectPath + '/' + view.window().project_data()['folders'][0]['sass_output']
+			sassOrigin = projectPath + os.sep + view.window().project_data()['folders'][0]['sass_origin']
+			sassOutput = projectPath + os.sep + view.window().project_data()['folders'][0]['sass_output']
 			
-			print('INPUT FILE: ' + sassOrigin + '/' + fileName);
-			print('INPUT FILE: ' + sassOutput + '/' + destinFileName);
+			print('INPUT FILE: ' + sassOrigin + os.sep + fileName);
+			print('INPUT FILE: ' + sassOutput + os.sep + destinFileName);
 
-			if os.path.isfile(sassOrigin + '/' + fileName) and os.path.isfile(sassOutput + '/' + destinFileName):
+			if os.path.isfile(sassOrigin + os.sep + fileName) and os.path.isfile(sassOutput + os.sep + destinFileName):
 
 				# Command to run
 				try:
 					if view.window().project_data()['sass_debug'] is True:
-						cmd = "sass --style compact --debug-info '{0}':'{1}' ".format(sassOrigin + '/' + fileName, sassOutput + '/' + destinFileName)
+						cmd = "sass --style compact --debug-info '{0}':'{1}' ".format(sassOrigin + os.sep + fileName, sassOutput + os.sep + destinFileName)
 					else:
-						cmd = "sass --style compact '{0}':'{1}' ".format(sassOrigin + '/' + fileName, sassOutput + '/' + destinFileName)
+						cmd = "sass --style compact '{0}':'{1}' ".format(sassOrigin + os.sep + fileName, sassOutput + os.sep + destinFileName)
 				except KeyError:
-					cmd = "sass --style compact '{0}':'{1}' ".format(sassOrigin + '/' + fileName, sassOutput + '/' + destinFileName)
+					cmd = "sass --style compact '{0}':'{1}' ".format(sassOrigin + os.sep + fileName, sassOutput + os.sep + destinFileName)
 
 				# Output the run command
 				print('SASS COMMAND : ' + cmd) 
@@ -96,8 +96,6 @@ class SassListener(sublime_plugin.EventListener):
 			   			view.window().run_command('refresh_browsers_delay');
 			   		else:
 			   			view.window().run_command('refresh_browsers');
-
-
 		except KeyError:
 		    x = None
 
