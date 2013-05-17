@@ -31,7 +31,8 @@ Example Directories:
 		{
 			"path": "/Users/philipclifton/Projects/philipmclifton",
 			"sass_origin": "static/scss",
-			"sass_output": "static/css"
+			"sass_output": "static/css",
+			"base_scss_file": "styles.scss"
 		}
 	]
 ```
