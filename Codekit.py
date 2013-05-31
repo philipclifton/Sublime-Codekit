@@ -2,8 +2,10 @@ import sublime_plugin
 import subprocess
 import sublime
 import platform
+import pprint
 import os
 import sys
+import re
 import os.path
 from threading import Thread
 
@@ -58,11 +60,11 @@ class SassListener(sublime_plugin.EventListener):
 				# Command to run
 				try:
 					if view.window().project_data()['sass_debug'] is True:
-						cmd = "sass --style compact --debug-info '{0}':'{1}' ".format(sassOrigin + os.sep + fileName, sassOutput + os.sep + destinFileName)
+						cmd = "sass --style compact --debug-info --no-cache '{0}':'{1}' ".format(sassOrigin + os.sep + fileName, sassOutput + os.sep + destinFileName)
 					else:
-						cmd = "sass --style compact '{0}':'{1}' ".format(sassOrigin + os.sep + fileName, sassOutput + os.sep + destinFileName)
+						cmd = "sass --style compact --no-cache '{0}':'{1}' ".format(sassOrigin + os.sep + fileName, sassOutput + os.sep + destinFileName)
 				except KeyError:
-					cmd = "sass --style compact '{0}':'{1}' ".format(sassOrigin + os.sep + fileName, sassOutput + os.sep + destinFileName)
+					cmd = "sass --style compact --no-cache '{0}':'{1}' ".format(sassOrigin + os.sep + fileName, sassOutput + os.sep + destinFileName)
 
 				# Output the run command
 				print('SASS COMMAND : ' + cmd) 
@@ -72,13 +74,23 @@ class SassListener(sublime_plugin.EventListener):
 					if view.window().project_data()['sass_compiler_active'] is False:
 						x = None
 					else:
-						subprocess.Popen(cmd, shell=True);
+						output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+						out, err = output.communicate()
 						sass_fired = True;
 						view.set_status('codekit', 'Sass compiled')	
+						if out:
+							self.debug_window(out.decode('utf-8'), view)
+						if err:
+							self.debug_window(err.decode('utf-8'), view)
 				except KeyError:
-				    subprocess.Popen(cmd, shell=True);
-				    sass_fired = True;
-				    view.set_status('codekit', 'Sass compiled')	
+					output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+					out, err = output.communicate()
+					sass_fired = True;
+					view.set_status('codekit', 'Sass compiled')	
+					if out:
+						self.debug_window(out.decode('utf-8'), view)
+					if err:
+						self.debug_window(err.decode('utf-8'), view)
 
 			else:
 				view.set_status('codekit', 'Sass project set incorrectly')
@@ -88,16 +100,32 @@ class SassListener(sublime_plugin.EventListener):
 
 		# Refresh Browser
 		try:
-		   	if view.window().project_data()['sass_browser_refresh'] is None:
-		   		x = 0
-		   	else:
-		   		if view.window().project_data()['sass_browser_refresh'] is True:
-		   			if sass_fired == True:
-			   			view.window().run_command('refresh_browsers_delay');
-			   		else:
-			   			view.window().run_command('refresh_browsers');
+			if view.window().project_data()['sass_browser_refresh'] is None:
+				x = 0
+			else:
+				if view.window().project_data()['sass_browser_refresh'] is True:
+					if sass_fired == True:
+						view.window().run_command('refresh_browsers_delay');
+					else:
+						view.window().run_command('refresh_browsers');
 		except KeyError:
-		    x = None
+			x = None
+
+	def debug_window(self, data, view):
+
+		self.output_view = view.window().get_output_panel("log")
+		self.output_view.set_read_only(False)
+		
+		self.output_view.set_syntax_file("Packages/Diff/Diff.tmLanguage")
+		args = {
+			'output': data,
+			'clear': True
+		}
+		self.output_view.run_command('git_scratch_output', args)
+
+		self.output_view.set_read_only(True)
+		view.window().run_command("show_panel", {"panel": "output.log"})
+		view.set_status('codekit', 'Sass failed to compile')
 
 
 class set_sass_status(sublime_plugin.TextCommand):
@@ -292,3 +320,43 @@ class refresh_browsers_delay(sublime_plugin.TextCommand):
 			if _os == 'Windows':
 				refresher.ie()
 				refresher.iron()
+
+class get_rgba_fallback(sublime_plugin.TextCommand):
+	def run(self, args):
+		selection = self.view.sel()
+
+		for region in selection:
+			for line in self.view.lines(region):
+				
+				line_content = self.view.substr(line)
+				dimensions = re.findall('rgba\(([0-9]*),([0-9]*),([0-9]*),([0-9.]*)\)', line_content ,re.DOTALL)
+				
+				passed = True
+
+				try:
+					dimensions[0][0]
+					dimensions[0][1]
+					dimensions[0][2]
+					dimensions[0][3]
+				except IndexError:
+					passed = False
+					print('Error finding required param')
+
+				if passed == True:
+					url = "http://rgbapng.com/?rgba={0},{1},{2},{3}".format(dimensions[0][0],dimensions[0][1],dimensions[0][2],dimensions[0][3]);
+					
+					import urllib.request
+		
+					request = urllib.request.Request(url)
+					response = urllib.request.urlopen(request)
+					print(response.read().decode('utf-8'))
+
+					# data = base64.encodebytes(html)
+					# print(data)
+
+					# view.run_command('append', {
+					#     'characters': html.read(),
+					#     })
+
+
+

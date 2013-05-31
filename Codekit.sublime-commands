@@ -10,5 +10,9 @@
     {
         "caption": "Project: Browser Refresh",
         "command": "set_browser_refresh"
+    },
+    {
+        "caption": "Codekit: Rgba Fallback",
+        "command": "get_rgba_fallback"
     }
 ]
