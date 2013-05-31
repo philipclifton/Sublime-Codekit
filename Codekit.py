@@ -256,7 +256,7 @@ class refresh_browsers(sublime_plugin.TextCommand):
 
 class refresh_browsers_delay(sublime_plugin.TextCommand):
 	def run(self, args, activate_browser=False,
-			browser_name='all', auto_save=True, delay=1):
+			browser_name='all', auto_save=True, delay=0):
 
 		print(args)
 
