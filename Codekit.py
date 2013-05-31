@@ -321,6 +321,29 @@ class refresh_browsers_delay(sublime_plugin.TextCommand):
 				refresher.ie()
 				refresher.iron()
 
+
+
+class find_image_files(sublime_plugin.TextCommand):
+	images = []
+	def run(self, edit):
+		import os.path
+		dir = self.view.window().project_data()['folders'][0]['path']
+		for root, dirs, files in os.walk(dir):
+			for f in files:
+				fullpath = os.path.join(root, f)
+				if os.path.splitext(fullpath)[1] == '.png' or os.path.splitext(fullpath)[1] == '.jpg' or os.path.splitext(fullpath)[1] == '.gif' or os.path.splitext(fullpath)[1] == '.svg':
+					self.images.append(fullpath.replace(dir, ''))
+
+		self.view.window().show_quick_panel(self.images, self.on_done);
+
+	def on_done(self, index):		
+		if index > -1:
+			print(self.view.window().project_data()['folders'][0]['path'])
+			self.view.run_command('insert', {
+			    'characters': self.images[index],
+			    })
+
+
 class get_rgba_fallback(sublime_plugin.TextCommand):
 	def run(self, args):
 		selection = self.view.sel()

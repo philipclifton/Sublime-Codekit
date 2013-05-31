@@ -14,5 +14,9 @@
     {
         "caption": "Codekit: Rgba Fallback",
         "command": "get_rgba_fallback"
-    }
+    },
+    {
+        "caption": "Codekit: Image Search",
+        "command": "find_image_files"
+    }   
 ]
