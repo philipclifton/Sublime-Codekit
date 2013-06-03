@@ -345,8 +345,11 @@ class find_image_files(sublime_plugin.TextCommand):
 
 
 class get_rgba_fallback(sublime_plugin.TextCommand):
+	imageUrl = ''
 	def run(self, args):
 		selection = self.view.sel()
+
+		print(selection)
 
 		for region in selection:
 			for line in self.view.lines(region):
@@ -366,20 +369,13 @@ class get_rgba_fallback(sublime_plugin.TextCommand):
 					print('Error finding required param')
 
 				if passed == True:
-					url = "http://rgbapng.com/?rgba={0},{1},{2},{3}".format(dimensions[0][0],dimensions[0][1],dimensions[0][2],dimensions[0][3]);
-					
-					import urllib.request
-		
-					request = urllib.request.Request(url)
-					response = urllib.request.urlopen(request)
-					print(response.read().decode('utf-8'))
+					self.imageUrl = "http://rgbapng.com/?rgba={0},{1},{2},{3}".format(dimensions[0][0],dimensions[0][1],dimensions[0][2],dimensions[0][3]);
+					self.view.window().show_input_panel('File Name: ', self.view.window().project_data()['folders'][0]['path'], self.file_done, self.file_ignore, self.file_ignore)
 
-					# data = base64.encodebytes(html)
-					# print(data)
+	def file_done(self, string):
+		import urllib.request
+		urllib.request.urlretrieve(self.imageUrl, string)
 
-					# view.run_command('append', {
-					#     'characters': html.read(),
-					#     })
-
-
+	def file_ignore(self, string):
+		return ''
 
