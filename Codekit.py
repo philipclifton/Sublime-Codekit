@@ -336,9 +336,9 @@ class find_image_files(sublime_plugin.TextCommand):
 						home = expanduser("~");
 						projectDir = os.path.join(home, projectDir)
 				else:
-						projectDir = projectDir[3:]
+						projectDir = projectDir[2:]
 			except KeyError:
-				projectDir = projectDir[3:]
+				projectDir = projectDir[2:]
 				
 		for root, dirs, files in os.walk(projectDir):
 			for f in files:
