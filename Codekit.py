@@ -327,12 +327,24 @@ class find_image_files(sublime_plugin.TextCommand):
 	images = []
 	def run(self, edit):
 		import os.path
-		dir = self.view.window().project_data()['folders'][0]['path']
-		for root, dirs, files in os.walk(dir):
+		projectDir = self.view.window().project_data()['folders'][0]['path']
+		
+		if _os == 'Windows':
+			try:
+				if self.view.window().project_data()['follow_symlinks'] is True:
+						from os.path import expanduser
+						home = expanduser("~");
+						projectDir = os.path.join(home, projectDir)
+				else:
+						projectDir = projectDir[3:]
+			except KeyError:
+				projectDir = projectDir[3:]
+				
+		for root, dirs, files in os.walk(projectDir):
 			for f in files:
 				fullpath = os.path.join(root, f)
 				if os.path.splitext(fullpath)[1] == '.png' or os.path.splitext(fullpath)[1] == '.jpg' or os.path.splitext(fullpath)[1] == '.gif' or os.path.splitext(fullpath)[1] == '.svg':
-					self.images.append(fullpath.replace(dir, ''))
+					self.images.append(fullpath.replace(projectDir, '').replace('\\','/'))
 
 		self.view.window().show_quick_panel(self.images, self.on_done);
 
