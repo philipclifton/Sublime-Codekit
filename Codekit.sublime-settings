@@ -1,0 +1,6 @@
+{
+	"mysql_bin" : "/usr/local/mysql/bin/",
+	"mysql_user" : "root",
+	"mysql_project_folder" : "_SQL",
+	"mysql_pass" : ""
+}

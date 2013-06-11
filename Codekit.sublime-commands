@@ -18,5 +18,13 @@
     {
         "caption": "Codekit: Image Search",
         "command": "find_image_files"
+    },
+    {
+        "caption": "Codekit: Database Dump",
+        "command": "dump_mysql"
+    },
+    {
+        "caption": "Codekit: Mysql Kit",
+        "command": "mysql_kit"
     }   
 ]

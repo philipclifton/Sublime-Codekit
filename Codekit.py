@@ -391,3 +391,146 @@ class get_rgba_fallback(sublime_plugin.TextCommand):
 	def file_ignore(self, string):
 		return ''
 
+
+class mysql_kit(sublime_plugin.TextCommand):
+	databases = [];
+	tables = [];
+	selected_database = 0;
+	selected_table = 0;
+
+	def run(self, args):
+		s = sublime.load_settings('Codekit.sublime-settings');
+
+		command = s.get('mysql_bin') + "mysql -e 'show databases' -u {0} -p{1}".format(s.get('mysql_user'), s.get('mysql_pass'));
+
+		output = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		out, err = output.communicate()
+
+		self.databases = [];
+
+		if out:
+
+			self.databases = out.decode('utf-8').split('\n');
+
+		if err:
+			print(err.decode('utf-8'))
+
+		self.view.window().show_quick_panel(self.databases, self.on_done_database);
+
+	def on_done_database(self, index):
+		self.selected_database = self.databases[index];
+
+		s = sublime.load_settings('Codekit.sublime-settings');
+
+		command = s.get('mysql_bin') + "mysql -e 'show tables from {2}' -u {0} -p{1}".format(s.get('mysql_user'), s.get('mysql_pass'), self.selected_database);
+
+		output = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		out, err = output.communicate()
+
+		self.tables = [];
+
+		if out:
+
+			self.tables = out.decode('utf-8').split('\n');
+
+		if err:
+			print(err.decode('utf-8'))
+
+		sublime.set_timeout(lambda: self.view.window().show_quick_panel(self.tables, self.on_done_table), 10)
+
+
+	def on_done_table(self, index):
+		self.selected_table = self.tables[index];
+
+		s = sublime.load_settings('Codekit.sublime-settings');
+
+		command = s.get('mysql_bin') + "mysql -e 'show columns from {2}.{3}' --raw -u {0} -p{1}".format(s.get('mysql_user'), s.get('mysql_pass'), self.selected_database, self.selected_table);
+
+		output = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		out, err = output.communicate()
+
+		self.tables = [];
+
+		if out:
+
+			self.debug_window(out.decode('iso8859-1'), self.view)
+
+		if err:
+			print(err.decode('utf-8'))
+
+
+	def debug_window(self, data, view):
+
+		self.output_view = view.window().get_output_panel("log")
+		self.output_view.set_read_only(False)
+		
+		self.output_view.set_syntax_file("Packages/Diff/Diff.tmLanguage")
+		args = {
+			'output': data,
+			'clear': True
+		}
+		self.output_view.run_command('git_scratch_output', args)
+
+		self.output_view.set_read_only(True)
+		view.window().run_command("show_panel", {"panel": "output.log"})
+		view.set_status('codekit', 'Sass failed to compile')
+
+
+
+
+
+class dump_mysql(sublime_plugin.TextCommand):
+
+	databases = [];
+	selected_index = 0;
+
+	def run(self, args):
+		s = sublime.load_settings('Codekit.sublime-settings');
+
+		command = s.get('mysql_bin') + "mysql -e 'show databases' -u {0} -p{1}".format(s.get('mysql_user'), s.get('mysql_pass'));
+
+		output = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		out, err = output.communicate()
+
+		self.databases = [];
+
+		if out:
+
+			self.databases = out.decode('utf-8').split('\n');
+
+		if err:
+			print(err.decode('utf-8'))
+
+		self.view.window().show_quick_panel(self.databases, self.on_done);
+
+	def on_done(self, index):		
+		if index > -1:
+
+			from time import gmtime, strftime
+			s = sublime.load_settings('Codekit.sublime-settings');
+
+			self.selected_index = index;
+
+			path = self.view.window().project_data()['folders'][0]['path'] + "/{0}/{1}-{2}.sql".format(s.get('mysql_project_folder'), self.databases[index], str(strftime('%d-%m-%y---%H-%M')));
+			self.selected_index = index;
+			self.view.window().show_input_panel('Save Database as: ', path, self.dump_database, False, False)
+
+	def dump_database(self, value):
+		s = sublime.load_settings('Codekit.sublime-settings');
+		command = s.get('mysql_bin') + "mysqldump '{3}' > '{2}' -u {0} -p{1}".format(s.get('mysql_user'), s.get('mysql_pass'), value, self.databases[self.selected_index]);
+
+		# print(command)
+
+		output = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		out, err = output.communicate()
+
+		self.selected_index = False;
+
+		if out:
+			print(out.decode('utf-8'))
+		if err:
+			print(err.decode('utf-8'))
+			
+
+
+
